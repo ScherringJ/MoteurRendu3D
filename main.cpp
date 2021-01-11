@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "tgaimage.h"
 
 using namespace std;
@@ -10,6 +11,12 @@ const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor blue  = TGAColor(0, 0, 255, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
+
+struct vecteur
+{
+    string vec[3];
+};
+
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     
@@ -57,24 +64,36 @@ int main(int argc, char** argv) {
     line(20, 13, 40, 80, image, red);
     line(80, 40, 13, 20, image, blue);
 
-    ifstream flux("obj/african_head/african_head.obj");
+    ifstream fichier("obj/african_head/african_head.obj", ios::in);
+
+    string line;
+    vector<vecteur> vecteurs;
     
-    if (flux) {
-        string line;
-        
-        while (getline(flux, line)) {
+    while (!fichier.eof()){
+        getline(fichier,line);
 
-            if (!line.compare(0, 2, "v ")) {
-                cout << line << endl;
-            }
-
+        if (!line.compare(0, 2, "v ")){
+            istringstream iss(line);
+            string temp;
+            vecteur v;
+            iss >> temp;
+            iss >> v.vec[0];
+            iss >> v.vec[1];
+            iss >> v.vec[2];
+            vecteurs.push_back(v);
         }
-        
+    }
 
-    } else {
-        cout << "Erreur: Impossible d'ouvrir le fichier en lecture." << endl;
+    for (int i = 0; i < vecteurs.size(); i++)
+    {
+        cout << vecteurs[i].vec[0] << vecteurs[i].vec[1] << vecteurs[i].vec[2] << endl;
     }
     
+
+    
+   
+    
+
     
 
     
