@@ -62,8 +62,12 @@ int main(int argc, char** argv) {
     if (flux) {
         string line;
         
-        while (getline(model, line)) {
-            cout << line << endl;
+        while (getline(flux, line)) {
+
+            if (!line.compare(0, 2, "v ")) {
+                cout << line << endl;
+            }
+
         }
         
 
