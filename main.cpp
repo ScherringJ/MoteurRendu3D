@@ -19,7 +19,7 @@ struct vecteur
 
 struct face
 {
-    std::vector<int> faces;
+    int faces[3];
 };
 
 
@@ -64,7 +64,7 @@ void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 }
 
 int main(int argc, char** argv) {
-	TGAImage image(100, 100, TGAImage::RGB);
+	TGAImage image(800, 800, TGAImage::RGB);
 
     std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
 
@@ -87,19 +87,25 @@ int main(int argc, char** argv) {
 
         } else if (!line.compare(0, 2, "f ")) {
             face f;
-
-            int idx, itrash;
             iss >> temp;
-            
-            while (iss >> idx >> temp >> itrash >> temp >> itrash)
-            {
+            for ( int i = 0; i < 3; i++) {
+                iss >> idx >> temp;
                 idx--;
-                f.faces.push_back(idx);
-               
+                f.faces[i] = idx;
             }
+            
             faces.push_back(f);
             
         }
+
+
+        for (int i = 0; i < faces.size(); i++) {
+            face f = faces.at(i);
+            std::cout << f.faces[0] << "|" << f.faces[1] << "|" << f.faces[2] << std::endl;
+        }
+
+        
+
     }
 
     
