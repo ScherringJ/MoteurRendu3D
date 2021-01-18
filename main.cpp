@@ -14,7 +14,7 @@ const TGAColor green = TGAColor(0, 255, 0, 255);
 
 struct vecteur
 {
-   std::string vec[3];
+    float vec[3];
 };
 
 struct face
@@ -87,6 +87,7 @@ int main(int argc, char** argv) {
 
         } else if (!line.compare(0, 2, "f ")) {
             face f;
+            int idx;
             iss >> temp;
             for ( int i = 0; i < 3; i++) {
                 iss >> idx >> temp;
@@ -101,7 +102,19 @@ int main(int argc, char** argv) {
 
         for (int i = 0; i < faces.size(); i++) {
             face f = faces.at(i);
-            std::cout << f.faces[0] << "|" << f.faces[1] << "|" << f.faces[2] << std::endl;
+
+            for (int j=0; j<3; j++) {
+                vecteur v0 = vecteurs.at(f.faces[j]);
+                vecteur v1 = vecteurs.at(f.faces[(j+1)%3]);
+
+                int x0 = (v0.vec[0]+1.)*800/2.;
+                int y0 = (v0.vec[1]+1.)*800/2.;
+
+                int x1 = (v1.vec[0]+1.)*800/2.;
+                int y1 = (v1.vec[1]+1.)*800/2.;
+
+                lines(x0, y0, x1, y1, image, white);
+            }
         }
 
         
