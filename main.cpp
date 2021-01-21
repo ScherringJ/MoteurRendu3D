@@ -116,14 +116,14 @@ void triangle(point t0, point t1, point t2,  TGAImage &image, TGAColor color) {
         }
     }
     
-
+    //TODO: Refactoring , on fait 2 fois la même chose
    
 }
 
 int main(int argc, char** argv) {
 	TGAImage image(800, 800, TGAImage::RGB);
 
-    /*
+    
     std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
 
     std::string line;
@@ -160,38 +160,25 @@ int main(int argc, char** argv) {
 
         for (int i = 0; i < faces.size(); i++) {
             face f = faces.at(i);
-
+            point triangle_coord[3];
             for (int j=0; j<3; j++) {
                 vecteur v0 = vecteurs.at(f.faces[j]);
-                vecteur v1 = vecteurs.at(f.faces[(j+1)%3]);
+                point p;
 
-                int x0 = (v0.vec[0]+1.)*800/2.;
-                int y0 = (v0.vec[1]+1.)*800/2.;
-
-                int x1 = (v1.vec[0]+1.)*800/2.;
-                int y1 = (v1.vec[1]+1.)*800/2.;
-
-                lines(x0, y0, x1, y1, image, white);
+                p.x = (v0.vec[0]+1.)*800/2.;
+                p.y = (v0.vec[1]+1.)*800/2.;
+                triangle_coord[j] = p;
+                
             }
+
+            triangle(triangle_coord[0], triangle_coord[1], triangle_coord[2], image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
         } 
 
         
 
-    } */
+    } 
 
-        point t0;
-        t0.x = 180;
-        t0.y = 150; 
-
-        point t1;
-        t1.x = 650;
-        t1.y = 300;
-
-        point t2;
-        t2.x = 270;
-        t2.y = 580;
         
-        triangle(t0, t1, t2, image, white);
 
     
     
