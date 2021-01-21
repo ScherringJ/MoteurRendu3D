@@ -89,8 +89,13 @@ void triangle(point t0, point t1, point t2,  TGAImage &image, TGAColor color) {
        int alpha_x = t0.x + (t2.x - t0.x) * alpha;
        int beta_x = t0.x + (t1.x - t0.x) * beta; 
 
-        image.set(alpha_x, y, red);
-        image.set(beta_x, y, green);
+        if (alpha_x > beta_x)
+            std::swap(alpha_x, beta_x);
+        
+        for (int x = alpha_x; x < beta_x; x++) {
+            image.set(x, y, color);
+        }
+        
     }
 
     for (int y = t1.y ; y < t2.y; y++)
@@ -103,12 +108,14 @@ void triangle(point t0, point t1, point t2,  TGAImage &image, TGAColor color) {
         int alpha_x = t0.x + (t2.x - t0.x) * alpha;
         int beta_x = t1.x + (t2.x - t1.x) * beta;
 
-        image.set(alpha_x, y, red);
-        image.set(beta_x, y, green);
+        if (alpha_x > beta_x)
+            std::swap(alpha_x, beta_x);
+        
+        for (int x = alpha_x; x < beta_x; x++) {
+            image.set(x, y, color);
+        }
     }
     
-    
-
 
    
 }
