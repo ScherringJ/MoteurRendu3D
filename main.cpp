@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cmath>
 #include "tgaimage.h"
 
 
@@ -161,17 +162,56 @@ int main(int argc, char** argv) {
         for (int i = 0; i < faces.size(); i++) {
             face f = faces.at(i);
             point triangle_coord[3];
+            vecteur coord[3];
             for (int j=0; j<3; j++) {
-                vecteur v0 = vecteurs.at(f.faces[j]);
+                vecteur v = vecteurs.at(f.faces[j]);
                 point p;
 
-                p.x = (v0.vec[0]+1.)*800/2.;
-                p.y = (v0.vec[1]+1.)*800/2.;
+                p.x = (v.vec[0]+1.)*800/2.;
+                p.y = (v.vec[1]+1.)*800/2.;
                 triangle_coord[j] = p;
+                coord[j] = v;
                 
             }
 
-            triangle(triangle_coord[0], triangle_coord[1], triangle_coord[2], image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+
+
+            vecteur temp1;
+            temp1.vec[0] =   coord[1].vec[0] - coord[0].vec[0];
+            temp1.vec[1] =   coord[1].vec[1] - coord[0].vec[1];
+            temp1.vec[2] =   coord[1].vec[2] - coord[0].vec[2];
+
+            vecteur temp2;
+            temp2.vec[0] =   coord[2].vec[0] - coord[0].vec[0];
+            temp2.vec[1] =   coord[2].vec[1] - coord[0].vec[1];
+            temp2.vec[2] =   coord[2].vec[2] - coord[0].vec[2];
+
+            //y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);
+            vecteur normal;
+            normal.vec[0] = temp2.vec[1] * temp1.vec[2] - temp2.vec[2] * temp1.vec[1];
+            normal.vec[1] = temp2.vec[2] * temp1.vec[0] - temp2.vec[0] * temp1.vec[2];
+            normal.vec[2] = temp2.vec[0] * temp1.vec[1] - temp2.vec[1] * temp1.vec[0];
+
+            float norm = std::sqrt(normal.vec[0] * normal.vec[0] + normal.vec[1] * normal.vec[1] + normal.vec[2] * normal.vec[2]);
+
+            vecteur n; 
+            n.vec[0] = normal.vec[0]/norm;
+            n.vec[1] = normal.vec[1]/norm;
+            n.vec[2] = normal.vec[2]/norm;
+
+
+           vecteur light;
+           light.vec[0] = 0;
+           light.vec[1] = 0;
+           light.vec[2] = -1;
+
+           float intensity = n.vec[0] * light.vec[0] + n.vec[1] * light.vec[1] + n.vec[2] * light.vec[2];
+
+
+
+           if (intensity > 0) {
+           triangle(triangle_coord[0], triangle_coord[1], triangle_coord[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+           }
         } 
 
         
