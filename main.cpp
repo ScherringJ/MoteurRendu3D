@@ -22,6 +22,11 @@ struct face
     int faces[3];
 };
 
+struct point
+{
+    int x;
+    int y;
+};
 
 
 void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
@@ -63,9 +68,55 @@ void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 
 }
 
+void triangle(point t0, point t1, point t2,  TGAImage &image, TGAColor color) {
+
+    if (t0.y > t1.y) 
+        std::swap(t0, t1);
+    if (t1.y > t2.y)
+        std::swap(t1, t2);
+    if (t0.y > t1.y)
+        std::swap(t0, t1);
+
+    int hauteur = t2.y - t0.y;
+
+    for (int y = t0.y; y < t1.y; y++)
+    {
+       int hauteur_seg = t1.y - t0.y + 1;
+
+       float alpha = (float)(y-t0.y)/hauteur;
+       float beta = (float)(y-t0.y)/hauteur_seg; 
+
+       int alpha_x = t0.x + (t2.x - t0.x) * alpha;
+       int beta_x = t0.x + (t1.x - t0.x) * beta; 
+
+        image.set(alpha_x, y, red);
+        image.set(beta_x, y, green);
+    }
+
+    for (int y = t1.y ; y < t2.y; y++)
+    {
+        int hauteur_seg = t2.y - t1.y + 1;
+
+        float alpha = (float)(y-t0.y)/hauteur;
+        float beta = (float)(y-t1.y)/hauteur_seg;
+
+        int alpha_x = t0.x + (t2.x - t0.x) * alpha;
+        int beta_x = t1.x + (t2.x - t1.x) * beta;
+
+        image.set(alpha_x, y, red);
+        image.set(beta_x, y, green);
+    }
+    
+    
+
+
+   
+}
+
 int main(int argc, char** argv) {
 	TGAImage image(800, 800, TGAImage::RGB);
 
+    /*
     std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
 
     std::string line;
@@ -115,17 +166,31 @@ int main(int argc, char** argv) {
 
                 lines(x0, y0, x1, y1, image, white);
             }
-        }
+        } 
 
         
 
-    }
+    } */
+
+        point t0;
+        t0.x = 180;
+        t0.y = 150; 
+
+        point t1;
+        t1.x = 650;
+        t1.y = 300;
+
+        point t2;
+        t2.x = 270;
+        t2.y = 580;
+        
+        triangle(t0, t1, t2, image, white);
 
     
     
 
     
-   
+   //TODO: Création d'une classe pour les vecteurs/faces.
     
 
     
