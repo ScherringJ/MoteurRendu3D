@@ -12,7 +12,7 @@ struct Vecteur
     };
     
     
-    Vecteur() : x(0), y(0), z(0) {}
+    Vecteur() : x(0.f), y(0.f), z(0.f) {}
     Vecteur(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
 
     Vecteur operator -(Vecteur &vec) { 
@@ -39,6 +39,22 @@ struct Vecteur
 
 };
 
+struct Face {
+    float coord[3];
+};
 
+
+template<class t> struct Point
+{
+    struct { t x, y ;};
+
+    Point() : x(0), y(0) {}
+    Point(t X, t Y) : x(X), y(Y) {}
+
+    
+};
+
+typedef Point<int> Pointi;
+typedef Point<float> Pointf;
 
 #endif

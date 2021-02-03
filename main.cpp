@@ -78,7 +78,7 @@ void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 }
 
 
-Vecteur barycentric(Vecteur *pts,  point P) {
+Vecteur barycentric(Vecteur *pts,  Pointi P) {
    
     Vecteur temp1(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x);
     Vecteur temp2(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y);
@@ -86,29 +86,16 @@ Vecteur barycentric(Vecteur *pts,  point P) {
     //cross
     Vecteur u = temp1 | temp2;
 
-    Vecteur retour; 
-    retour.x = 1. - (u.x + u.y)/u.z;
-    retour.y = u.y/u.z;
-    retour.z = u.x/u.z;
+    return Vecteur(1.f - (u.x + u.y)/u.z, u.y/u.z, u.x/u.z); 
 
-    return retour;
 }
 
 void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
 
-    pointf boxmin;
-    boxmin.x = (float)(image.get_width() - 1);
-    boxmin.y = (float)(image.get_height() -1);
-
-    pointf boxmax;
-    boxmax.x = 0.f;
-    boxmax.y = 0.f;
-
-    pointf clamp;
-    clamp.x = (float)(image.get_width() - 1);
-    clamp.y = (float)(image.get_height() -1);
-
-
+    Pointf boxmin((float)(image.get_width() - 1), (float)(image.get_height() -1));
+    Pointf boxmax;
+    Pointf clamp((float)(image.get_width() - 1), (float)(image.get_height() -1));
+    
 
     for (int i = 0; i < 3; i++) {
         boxmin.x = std::max(0.f, std::min(boxmin.x, pts[i].x));
@@ -118,13 +105,12 @@ void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
         boxmax.y = std::min(clamp.y, std::max(boxmax.y, pts[i].y));
     }
 
-    point P;
+    Pointi P;
     float Pz;
     for (P.x = boxmin.x; P.x <= boxmax.x; P.x++) {
         for (P.y = boxmin.y; P.y <= boxmax.y; P.y++) {
             Vecteur bary = barycentric(pts, P);
             
-   
             if (bary.x < 0 || bary.y < 0 || bary.z < 0) continue;
             Pz = 0;
 
@@ -137,8 +123,6 @@ void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
                 image.set(P.x, P.y, color);
             }
 
-
-            
 
         }
 
@@ -159,7 +143,7 @@ int main(int argc, char** argv) {
 
     std::string line;
     std::vector<Vecteur> vecteurs;
-    std::vector<face> faces;
+    std::vector<Face> faces;
 
     float *zbuffer = new float[width*height];
     for (int i = 0; i < width*height; i++) {
@@ -180,13 +164,13 @@ int main(int argc, char** argv) {
             vecteurs.push_back(Vecteur(v[0], v[1], v[2]));
 
         } else if (!line.compare(0, 2, "f ")) {
-            face f;
+            Face f;
             int idx;
             iss >> temp;
             for ( int i = 0; i < 3; i++) {
                 iss >> idx >> temp;
                 idx--;
-                f.faces[i] = idx;
+                f.coord[i] = idx;
             }
             
             faces.push_back(f);
@@ -196,11 +180,13 @@ int main(int argc, char** argv) {
 
        
         for (int i = 0; i < faces.size(); i++) {
-            face f = faces.at(i);
+            Face f = faces.at(i);
             Vecteur triangle_coord[3];
             Vecteur coord[3];
+
             for (int j=0; j<3; j++) {
-                Vecteur v = vecteurs.at(f.faces[j]);;
+
+                Vecteur v = vecteurs.at(f.coord[j]);
                 Vecteur p((v.vec[0]+1.)*800/2., (v.vec[1]+1.)*800/2, 0);
 
                 triangle_coord[j] = p;
