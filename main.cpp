@@ -4,6 +4,8 @@
 #include <vector>
 #include <cmath>
 #include "tgaimage.h"
+#include "struct.h"
+
 
 
 
@@ -16,14 +18,10 @@ const TGAColor green = TGAColor(0, 255, 0, 255);
 const int width = 800;
 const int height = 800;
 
-struct vecteur
-{
-    float vec[3];
-};
 
 struct face
 {
-    int faces[3];
+    float faces[3];
 };
 
 struct point
@@ -31,6 +29,13 @@ struct point
     int x;
     int y;
 };
+
+struct pointf
+{
+    float x;
+    float y;
+};
+
 
 
 void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
@@ -72,72 +77,68 @@ void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 
 }
 
-vecteur barycentric(point *pts,  point P) {
-    vecteur u, temp1, temp2;
 
-    temp1.vec[0] = pts[2].x - pts[0].x;
-    temp1.vec[1] = pts[1].x - pts[0].x;
-    temp1.vec[2] = pts[0].x - P.x;
-
-    temp2.vec[0] = pts[2].y - pts[0].y;
-    temp2.vec[1] = pts[1].y - pts[0].y;
-    temp2.vec[2] = pts[0].y - P.y;
-
+Vecteur barycentric(Vecteur *pts,  point P) {
+   
+    Vecteur temp1(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x);
+    Vecteur temp2(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y);
+    
     //cross
+    Vecteur u = temp1 | temp2;
 
-    u.vec[0] = temp1.vec[1] * temp2.vec[2] - temp1.vec[2] * temp2.vec[1];
-    u.vec[1]=  temp1.vec[2] * temp2.vec[0] - temp1.vec[0] * temp2.vec[2];
-    u.vec[2] = temp1.vec[0] * temp2.vec[1] - temp1.vec[1] * temp2.vec[0];
-
-    
-    
-    vecteur retour; 
-    if (std::abs(u.vec[2]) < 1) {
-        retour.vec[0] = -1;
-        retour.vec[1] = 1;
-        retour.vec[2] = 1;
-
-    } else {
-        retour.vec[0] = 1.f - (u.vec[0] + u.vec[1])/u.vec[2];
-        retour.vec[1] = u.vec[1]/u.vec[2];
-        retour.vec[2] = u.vec[0]/u.vec[2];
-    }
-
+    Vecteur retour; 
+    retour.x = 1. - (u.x + u.y)/u.z;
+    retour.y = u.y/u.z;
+    retour.z = u.x/u.z;
 
     return retour;
 }
 
-void triangle(point *pts,  TGAImage &image, TGAColor color) {
+void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
 
-    point boxmin;
-    boxmin.x = image.get_width() - 1;
-    boxmin.y = image.get_height() -1;
+    pointf boxmin;
+    boxmin.x = (float)(image.get_width() - 1);
+    boxmin.y = (float)(image.get_height() -1);
 
-    point boxmax;
-    boxmax.x = 0;
-    boxmax.y = 0;
+    pointf boxmax;
+    boxmax.x = 0.f;
+    boxmax.y = 0.f;
 
-    point clamp;
-    clamp.x = image.get_width() - 1;
-    clamp.y = image.get_height() -1;
+    pointf clamp;
+    clamp.x = (float)(image.get_width() - 1);
+    clamp.y = (float)(image.get_height() -1);
+
 
 
     for (int i = 0; i < 3; i++) {
-        boxmin.x = std::max(0, std::min(boxmin.x, pts[i].x));
-        boxmin.y = std::max(0, std::min(boxmin.y, pts[i].y));
+        boxmin.x = std::max(0.f, std::min(boxmin.x, pts[i].x));
+        boxmin.y = std::max(0.f, std::min(boxmin.y, pts[i].y));
 
         boxmax.x = std::min(clamp.x, std::max(boxmax.x, pts[i].x));
         boxmax.y = std::min(clamp.y, std::max(boxmax.y, pts[i].y));
     }
 
     point P;
+    float Pz;
     for (P.x = boxmin.x; P.x <= boxmax.x; P.x++) {
         for (P.y = boxmin.y; P.y <= boxmax.y; P.y++) {
-            vecteur bary = barycentric(pts, P);
+            Vecteur bary = barycentric(pts, P);
             
    
-            if (bary.vec[0] < 0 || bary.vec[1] < 0 || bary.vec[2] < 0) continue;
-            image.set(P.x, P.y, color);
+            if (bary.x < 0 || bary.y < 0 || bary.z < 0) continue;
+            Pz = 0;
+
+            for (int i = 0; i < 3; i++) {
+                Pz += pts[i].z * bary.vec[i];
+            }
+
+            if (zbuffer[int(P.x + P.y*width)] < Pz) {
+                zbuffer[int(P.x + P.y*width)] = Pz;
+                image.set(P.x, P.y, color);
+            }
+
+
+            
 
         }
 
@@ -145,18 +146,25 @@ void triangle(point *pts,  TGAImage &image, TGAColor color) {
     }
     
    
-}
+} 
 
 
 int main(int argc, char** argv) {
+
+    
 	TGAImage image(width, height, TGAImage::RGB);
 
     
     std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
 
     std::string line;
-    std::vector<vecteur> vecteurs;
+    std::vector<Vecteur> vecteurs;
     std::vector<face> faces;
+
+    float *zbuffer = new float[width*height];
+    for (int i = 0; i < width*height; i++) {
+        zbuffer[i] = -std::numeric_limits<float>::max();
+    };
     
     while (!fichier.eof()){
         getline(fichier,line);
@@ -164,12 +172,12 @@ int main(int argc, char** argv) {
         std::string temp;
 
         if (!line.compare(0, 2, "v ")){
-            vecteur v;
+            float v[3];
             iss >> temp;
             for (int i = 0; i < 3; i++) {
-                iss >> v.vec[i];
+                iss >> v[i];
             }
-            vecteurs.push_back(v);
+            vecteurs.push_back(Vecteur(v[0], v[1], v[2]));
 
         } else if (!line.compare(0, 2, "f ")) {
             face f;
@@ -189,68 +197,40 @@ int main(int argc, char** argv) {
        
         for (int i = 0; i < faces.size(); i++) {
             face f = faces.at(i);
-            point triangle_coord[3];
-            vecteur coord[3];
+            Vecteur triangle_coord[3];
+            Vecteur coord[3];
             for (int j=0; j<3; j++) {
-                vecteur v = vecteurs.at(f.faces[j]);
-                point p;
+                Vecteur v = vecteurs.at(f.faces[j]);;
+                Vecteur p((v.vec[0]+1.)*800/2., (v.vec[1]+1.)*800/2, 0);
 
-                p.x = (v.vec[0]+1.)*800/2.;
-                p.y = (v.vec[1]+1.)*800/2.;
                 triangle_coord[j] = p;
                 coord[j] = v;
                 
             }
 
+            Vecteur temp1 = coord[1] - coord[0];
+            Vecteur temp2 = coord[2] - coord[1];
+            Vecteur normal = temp2 | temp1;
 
+            float norm = normal.norm();
+            Vecteur n = normal/norm; 
 
-            vecteur temp1;
-            temp1.vec[0] =   coord[1].vec[0] - coord[0].vec[0];
-            temp1.vec[1] =   coord[1].vec[1] - coord[0].vec[1];
-            temp1.vec[2] =   coord[1].vec[2] - coord[0].vec[2];
-
-            vecteur temp2;
-            temp2.vec[0] =   coord[2].vec[0] - coord[0].vec[0];
-            temp2.vec[1] =   coord[2].vec[1] - coord[0].vec[1];
-            temp2.vec[2] =   coord[2].vec[2] - coord[0].vec[2];
-
-            
-            vecteur normal;
-            normal.vec[0] = temp2.vec[1] * temp1.vec[2] - temp2.vec[2] * temp1.vec[1];
-            normal.vec[1] = temp2.vec[2] * temp1.vec[0] - temp2.vec[0] * temp1.vec[2];
-            normal.vec[2] = temp2.vec[0] * temp1.vec[1] - temp2.vec[1] * temp1.vec[0];
-
-            float norm = std::sqrt(normal.vec[0] * normal.vec[0] + normal.vec[1] * normal.vec[1] + normal.vec[2] * normal.vec[2]);
-
-            vecteur n; 
-            n.vec[0] = normal.vec[0]/norm;
-            n.vec[1] = normal.vec[1]/norm;
-            n.vec[2] = normal.vec[2]/norm;
-
-
-           vecteur light;
-           light.vec[0] = 0;
-           light.vec[1] = 0;
-           light.vec[2] = -1;
-
-           float intensity = n.vec[0] * light.vec[0] + n.vec[1] * light.vec[1] + n.vec[2] * light.vec[2];
+            Vecteur light(0, 0, -1);
+            Vecteur intens = n * light;
+            float intensity = intens.x + intens.y + intens.z;
            
 
            if (intensity > 0) {
-            triangle(triangle_coord, image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+            triangle(triangle_coord, zbuffer, image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
            } 
         } 
-
-        
-
-    
-
-    //TODO: Création d'une classe pour les vecteurs/faces.
 
 
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
+    
+    
 
 	return 0;
 }
