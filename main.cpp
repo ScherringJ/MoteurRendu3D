@@ -5,6 +5,7 @@
 #include <cmath>
 #include "tgaimage.h"
 #include "struct.h"
+#include "Matrix.h"
 
 
 
@@ -19,22 +20,7 @@ const int width = 800;
 const int height = 800;
 
 
-struct face
-{
-    float faces[3];
-};
 
-struct point
-{
-    int x;
-    int y;
-};
-
-struct pointf
-{
-    float x;
-    float y;
-};
 
 
 
