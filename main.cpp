@@ -90,7 +90,7 @@ Vecteur barycentric(Vecteur *pts,  Pointi P) {
 
 }
 
-void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
+void triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &image, TGAImage &texture ,float intensity) {
 
     Pointf boxmin((float)(image.get_width() - 1), (float)(image.get_height() -1));
     Pointf boxmax;
@@ -110,6 +110,8 @@ void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
     for (P.x = boxmin.x; P.x <= boxmax.x; P.x++) {
         for (P.y = boxmin.y; P.y <= boxmax.y; P.y++) {
             Vecteur bary = barycentric(pts, P);
+
+            
             
             if (bary.x < 0 || bary.y < 0 || bary.z < 0) continue;
             Pz = 0;
@@ -118,9 +120,15 @@ void triangle(Vecteur *pts, float *zbuffer, TGAImage &image, TGAColor color) {
                 Pz += pts[i].z * bary.vec[i];
             }
 
+            Pointi uv;
+            uv.x = pts_texture[0].x * bary.x + pts_texture[1].x * bary.y + pts_texture[2].x * bary.z;
+            uv.y = pts_texture[0].y * bary.x + pts_texture[1].y * bary.y + pts_texture[2].y * bary.z;
+
             if (zbuffer[int(P.x + P.y*width)] < Pz) {
                 zbuffer[int(P.x + P.y*width)] = Pz;
-                image.set(P.x, P.y, color);
+
+                TGAColor color = texture.get(uv.x, uv.y);
+                image.set(P.x, P.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity, 255));
             }
 
 
@@ -137,6 +145,9 @@ int main(int argc, char** argv) {
 
     
 	TGAImage image(width, height, TGAImage::RGB);
+    TGAImage texture;
+    texture.read_tga_file("obj/african_head/african_head_diffuse.tga");
+    texture.flip_vertically();
 
     
     std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
@@ -144,6 +155,7 @@ int main(int argc, char** argv) {
     std::string line;
     std::vector<Vecteur> vecteurs;
     std::vector<Face> faces;
+    std::vector<Pointf> coord_textures;
 
     float *zbuffer = new float[width*height];
     for (int i = 0; i < width*height; i++) {
@@ -165,16 +177,26 @@ int main(int argc, char** argv) {
 
         } else if (!line.compare(0, 2, "f ")) {
             Face f;
-            int idx;
+            float idx, idx2;
+            char trash;
             iss >> temp;
             for ( int i = 0; i < 3; i++) {
-                iss >> idx >> temp;
+                iss >> idx >> trash >> idx2 >> temp;
                 idx--;
+                idx2--;
                 f.coord[i] = idx;
+                f.text_coord[i] = idx2;
             }
             
             faces.push_back(f);
             
+        } else if (!line.compare(0, 2, "vt")) {
+
+            float idx, idx2;
+            iss >> temp >> idx >> idx2;
+            Pointf uv(idx, idx2);
+            coord_textures.push_back(uv);
+
         }
     }
 
@@ -183,7 +205,6 @@ int main(int argc, char** argv) {
             Face f = faces.at(i);
             Vecteur triangle_coord[3];
             Vecteur coord[3];
-
             for (int j=0; j<3; j++) {
 
                 Vecteur v = vecteurs.at(f.coord[j]);
@@ -207,7 +228,12 @@ int main(int argc, char** argv) {
            
 
            if (intensity > 0) {
-            triangle(triangle_coord, zbuffer, image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+            Vecteur uv[3];
+            for (int j = 0; j < 3; j++) {
+              int index = f.text_coord[j];
+              uv[j] = Vecteur( coord_textures.at(index).x * texture.get_width(), coord_textures.at(index).y * texture.get_height(), 0.f);
+            }
+            triangle(triangle_coord, zbuffer, uv,  image, texture, intensity);
            } 
         } 
 

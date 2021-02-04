@@ -41,6 +41,7 @@ struct Vecteur
 
 struct Face {
     float coord[3];
+    float text_coord[3];
 };
 
 
