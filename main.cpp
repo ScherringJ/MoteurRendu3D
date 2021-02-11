@@ -50,6 +50,36 @@ Vecteur matrixToVecteur(Matrix m) {
     return Vecteur(m(0,0)/m(3,0), m(1,0)/m(3,0), m(2,0)/m(3,0));
 }
 
+Matrix lookat(Vecteur eye, Vecteur center, Vecteur up) {
+
+    Vecteur z = eye - center;
+    float znorm = z.norm();
+    z = z/znorm;
+
+    Vecteur x = up | z;
+    float xnorm = x.norm();
+    x = x/xnorm;
+
+    Vecteur y = z | x;
+    float ynorm = y.norm();
+    y = y/ynorm;
+
+    Matrix Minv = Matrix::identite(4);
+    Matrix Tr = Matrix::identite(4);
+
+    for (int i = 0; i < 3; i++) {
+
+        Minv(0, i) = x.vec[i];
+        Minv(1, i) = y.vec[i];
+        Minv(2, i) = z.vec[i];
+
+        Tr(i, 3) = -center.vec[i];
+
+    }
+
+    return Minv * Tr;
+
+}
 
 void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     
@@ -175,9 +205,14 @@ int main(int argc, char** argv) {
         zbuffer[i] = -std::numeric_limits<float>::max();
     };
 
+    Vecteur eye(-1, 2, 3);
+    Vecteur center(0, 0, 0);
+    Vecteur up(0, 1, 0);
+    Matrix modelview = lookat(eye, center, up);
+
     Matrix projection = Matrix::identite(4);
     Matrix perspects = perspect(width/8, height/8, width*3/4, height*3/4);
-    projection(3, 2) = -1.f/camera.z;
+    projection(3, 2) = -1.f/ (eye-center).norm() ;
     
     while (!fichier.eof()){
         getline(fichier,line);
@@ -227,7 +262,7 @@ int main(int argc, char** argv) {
                 Vecteur v = vecteurs.at(f.coord[j]);
                 Vecteur p((v.vec[0]+1.)*800/2., (v.vec[1]+1.)*800/2, 0);
 
-                Matrix tempMatrix = perspects * projection * vecteurToMatrix(v);
+                Matrix tempMatrix = perspects * projection * modelview * vecteurToMatrix(v);
 
                 triangle_coord[j] = matrixToVecteur(tempMatrix);
                 coord[j] = v;
