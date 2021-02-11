@@ -18,10 +18,37 @@ const TGAColor green = TGAColor(0, 255, 0, 255);
 
 const int width = 800;
 const int height = 800;
+const int depth = 255;
 
+Vecteur camera(0, 0, 3);
 
+Matrix perspect(int x, int y, int w, int h) {
+    Matrix m = Matrix::identite(4);
+    m(0, 3) = x+w/2.f;
+    m(1, 3) = y+h/2.f;
+    m(2, 3) = depth/2.f;
 
+    m(0, 0) = w/2.f;
+    m(1, 1) = h/2.f;
+    m(2, 2) = depth/2.f;
 
+    return m;
+}
+
+Matrix vecteurToMatrix(Vecteur v) {
+    Matrix m(4,1);
+    m(0,0) = v.x;
+    m(1,0) = v.y;
+    m(2,0) = v.z;
+    m(3,0) = 1;
+
+    return m;
+}
+
+Vecteur matrixToVecteur(Matrix m) {
+
+    return Vecteur(m(0,0)/m(3,0), m(1,0)/m(3,0), m(2,0)/m(3,0));
+}
 
 
 void lines(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
@@ -129,13 +156,13 @@ void triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &imag
 
 int main(int argc, char** argv) {
 
-    
 	TGAImage image(width, height, TGAImage::RGB);
     TGAImage texture;
     texture.read_tga_file("obj/african_head/african_head_diffuse.tga");
     texture.flip_vertically();
 
-    
+   
+
     std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
 
     std::string line;
@@ -147,6 +174,10 @@ int main(int argc, char** argv) {
     for (int i = 0; i < width*height; i++) {
         zbuffer[i] = -std::numeric_limits<float>::max();
     };
+
+    Matrix projection = Matrix::identite(4);
+    Matrix perspects = perspect(width/8, height/8, width*3/4, height*3/4);
+    projection(3, 2) = -1.f/camera.z;
     
     while (!fichier.eof()){
         getline(fichier,line);
@@ -196,7 +227,9 @@ int main(int argc, char** argv) {
                 Vecteur v = vecteurs.at(f.coord[j]);
                 Vecteur p((v.vec[0]+1.)*800/2., (v.vec[1]+1.)*800/2, 0);
 
-                triangle_coord[j] = p;
+                Matrix tempMatrix = perspects * projection * vecteurToMatrix(v);
+
+                triangle_coord[j] = matrixToVecteur(tempMatrix);
                 coord[j] = v;
                 
             }

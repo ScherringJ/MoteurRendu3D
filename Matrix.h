@@ -2,6 +2,8 @@
 #define _MATRIX_H__
 
 #include <vector>
+#include <cstdlib>
+
 
 class Matrix
 {
@@ -14,8 +16,10 @@ public:
 
     int get_row();
     int get_col();
-
-    Matrix identite(int dim);
+    float& operator()(const unsigned &row, const unsigned &col);
+    Matrix operator*(const Matrix &m);
+    static Matrix identite(int dim);
+    void print();
    
 
 };
