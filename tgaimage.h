@@ -57,6 +57,13 @@ struct TGAColor {
 		}
 		return *this;
 	}
+
+	TGAColor operator *(const double intensity) const {
+        TGAColor res = *this;
+        double clamped = std::max(0., std::min(intensity, 1.));
+        for (int i=0; i<4; i++) res.raw[i] = raw[i]*clamped;
+        return res;
+    }
 };
 
 

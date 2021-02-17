@@ -24,8 +24,18 @@ struct Vecteur
     }
 
     Vecteur operator *(Vecteur &vec) {
-        return Vecteur( x * vec.x, y * vec.x, z * vec.z);
+        return Vecteur( x * vec.x, y * vec.y, z * vec.z);
     }
+
+    Vecteur operator *(float &fl) {
+        return Vecteur(x * fl, y * fl, z * fl);
+    }
+
+    float operator ^(Vecteur &vec) {
+
+        return (x * vec.x + y * vec.y + z * vec.z);
+    }
+    
 
     Vecteur operator |(Vecteur &vec) {
         return Vecteur(y*vec.z - z*vec.y, z*vec.x - x*vec.z, x*vec.y - y*vec.x);

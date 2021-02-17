@@ -6,10 +6,7 @@
 #include "tgaimage.h"
 #include "struct.h"
 #include "Matrix.h"
-
-
-
-
+#include "Model.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
@@ -21,6 +18,10 @@ const int height = 800;
 const int depth = 255;
 
 Vecteur camera(0, 0, 3);
+Vecteur light(0, 0, -1);
+Vecteur eye(0, 0, 3);
+Vecteur center(0, 0, 0);
+Vecteur up(0, 1, 0);
 
 Matrix perspect(int x, int y, int w, int h) {
     Matrix m = Matrix::identite(4);
@@ -133,7 +134,7 @@ Vecteur barycentric(Vecteur *pts,  Pointi P) {
 
 }
 
-void triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &image, TGAImage &texture ,float intensity) {
+void triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &image, TGAImage &texture, float intensity) {
 
     Pointf boxmin((float)(image.get_width() - 1), (float)(image.get_height() -1));
     Pointf boxmax;
@@ -170,7 +171,7 @@ void triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &imag
             if (zbuffer[int(P.x + P.y*width)] < Pz) {
                 zbuffer[int(P.x + P.y*width)] = Pz;
 
-                TGAColor color = texture.get(uv.x, uv.y);
+                TGAColor color = texture.get(uv.x, uv.y);                
                 image.set(P.x, P.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity, 255));
             }
 
@@ -187,101 +188,67 @@ void triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &imag
 int main(int argc, char** argv) {
 
 	TGAImage image(width, height, TGAImage::RGB);
+    std::string file = "african_head";
+    
     TGAImage texture;
     texture.read_tga_file("obj/african_head/african_head_diffuse.tga");
     texture.flip_vertically();
 
-   
+    TGAImage textureNormal;
+    textureNormal.read_tga_file("obj/african_head/african_head_nm.tga");
+    textureNormal.flip_vertically();
+  
+    Model model(file);
+    
+    std::vector<Vecteur> vecteurs = model.get_vecteurs();
+    std::vector<Face> faces = model.get_faces();
+    std::vector<Pointf> coord_textures = model.get_coord_textures();
+    std::vector<Vecteur> coord_textures_normal = model.get_coord_textures_normal();
 
-    std::ifstream fichier("obj/african_head/african_head.obj", std::ios::in);
-
-    std::string line;
-    std::vector<Vecteur> vecteurs;
-    std::vector<Face> faces;
-    std::vector<Pointf> coord_textures;
 
     float *zbuffer = new float[width*height];
     for (int i = 0; i < width*height; i++) {
         zbuffer[i] = -std::numeric_limits<float>::max();
     };
 
-    Vecteur eye(-1, 2, 3);
-    Vecteur center(0, 0, 0);
-    Vecteur up(0, 1, 0);
+    
     Matrix modelview = lookat(eye, center, up);
-
     Matrix projection = Matrix::identite(4);
     Matrix perspects = perspect(width/8, height/8, width*3/4, height*3/4);
     projection(3, 2) = -1.f/ (eye-center).norm() ;
+
     
-    while (!fichier.eof()){
-        getline(fichier,line);
-        std::istringstream iss(line);
-        std::string temp;
-
-        if (!line.compare(0, 2, "v ")){
-            float v[3];
-            iss >> temp;
-            for (int i = 0; i < 3; i++) {
-                iss >> v[i];
-            }
-            vecteurs.push_back(Vecteur(v[0], v[1], v[2]));
-
-        } else if (!line.compare(0, 2, "f ")) {
-            Face f;
-            float idx, idx2;
-            char trash;
-            iss >> temp;
-            for ( int i = 0; i < 3; i++) {
-                iss >> idx >> trash >> idx2 >> temp;
-                idx--;
-                idx2--;
-                f.coord[i] = idx;
-                f.text_coord[i] = idx2;
-            }
-            
-            faces.push_back(f);
-            
-        } else if (!line.compare(0, 2, "vt")) {
-
-            float idx, idx2;
-            iss >> temp >> idx >> idx2;
-            Pointf uv(idx, idx2);
-            coord_textures.push_back(uv);
-
-        }
-    }
-
+    for (int i = 0; i < faces.size(); i++) {
+        Face f = faces.at(i);
+        Vecteur triangle_coord[3];
+        Vecteur coord[3];
        
-        for (int i = 0; i < faces.size(); i++) {
-            Face f = faces.at(i);
-            Vecteur triangle_coord[3];
-            Vecteur coord[3];
-            for (int j=0; j<3; j++) {
+           
+        for (int j=0; j<3; j++) {
 
-                Vecteur v = vecteurs.at(f.coord[j]);
-                Vecteur p((v.vec[0]+1.)*800/2., (v.vec[1]+1.)*800/2, 0);
-
-                Matrix tempMatrix = perspects * projection * modelview * vecteurToMatrix(v);
-
-                triangle_coord[j] = matrixToVecteur(tempMatrix);
-                coord[j] = v;
+            Vecteur v = vecteurs.at(f.coord[j]);
+            Vecteur p((v.vec[0]+1.)*800/2., (v.vec[1]+1.)*800/2, 0);
                 
-            }
+            Matrix tempMatrix = perspects * projection * modelview * vecteurToMatrix(v);
 
-            Vecteur temp1 = coord[1] - coord[0];
-            Vecteur temp2 = coord[2] - coord[1];
-            Vecteur normal = temp2 | temp1;
+            triangle_coord[j] = matrixToVecteur(tempMatrix);
+            coord[j] = v;
+                
+        }
 
-            float norm = normal.norm();
-            Vecteur n = normal/norm; 
+        Vecteur temp1 = coord[1] - coord[0];
+        Vecteur temp2 = coord[2] - coord[1];
+        Vecteur normal = temp2 | temp1;
 
-            Vecteur light(0, 0, -1);
-            Vecteur intens = n * light;
-            float intensity = intens.x + intens.y + intens.z;
+        float norm = normal.norm();
+        Vecteur n = normal/norm; 
+
+           
+        Vecteur intens = n * light;
+        float intensity = intens.x + intens.y + intens.z;
            
 
-           if (intensity > 0) {
+        if (intensity > 0) {
             Vecteur uv[3];
             for (int j = 0; j < 3; j++) {
               int index = f.text_coord[j];
@@ -290,6 +257,7 @@ int main(int argc, char** argv) {
             triangle(triangle_coord, zbuffer, uv,  image, texture, intensity);
            } 
         } 
+
 
 
 
