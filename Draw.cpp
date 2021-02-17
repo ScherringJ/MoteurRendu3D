@@ -70,7 +70,51 @@ void Draw::triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage
 
 
         }
+    }
+}
 
+Matrix Draw::perspect(int x, int y, int w, int h) {
+
+    Matrix m = Matrix::identite(4);
+    m(0, 3) = x+w/2.f;
+    m(1, 3) = y+h/2.f;
+    m(2, 3) = depth/2.f;
+
+    m(0, 0) = w/2.f;
+    m(1, 1) = h/2.f;
+    m(2, 2) = depth/2.f;
+
+    return m;
+    
+}
+
+Matrix Draw::lookat(Vecteur eye, Vecteur center, Vecteur up) {
+
+    Vecteur z = eye - center;
+    float znorm = z.norm();
+    z = z/znorm;
+
+    Vecteur x = up | z;
+    float xnorm = x.norm();
+    x = x/xnorm;
+
+    Vecteur y = z | x;
+    float ynorm = y.norm();
+    y = y/ynorm;
+
+    Matrix Minv = Matrix::identite(4);
+    Matrix Tr = Matrix::identite(4);
+
+    for (int i = 0; i < 3; i++) {
+
+        Minv(0, i) = x.vec[i];
+        Minv(1, i) = y.vec[i];
+        Minv(2, i) = z.vec[i];
+
+        Tr(i, 3) = -center.vec[i];
 
     }
+
+    return Minv * Tr;
+    
 }

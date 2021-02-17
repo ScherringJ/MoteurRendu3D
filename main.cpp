@@ -24,19 +24,6 @@ Vecteur eye(0, 0, 3);
 Vecteur center(0, 0, 0);
 Vecteur up(0, 1, 0);
 
-Matrix perspect(int x, int y, int w, int h) {
-    Matrix m = Matrix::identite(4);
-    m(0, 3) = x+w/2.f;
-    m(1, 3) = y+h/2.f;
-    m(2, 3) = depth/2.f;
-
-    m(0, 0) = w/2.f;
-    m(1, 1) = h/2.f;
-    m(2, 2) = depth/2.f;
-
-    return m;
-}
-
 Matrix vecteurToMatrix(Vecteur v) {
     Matrix m(4,1);
     m(0,0) = v.x;
@@ -51,40 +38,6 @@ Vecteur matrixToVecteur(Matrix m) {
 
     return Vecteur(m(0,0)/m(3,0), m(1,0)/m(3,0), m(2,0)/m(3,0));
 }
-
-Matrix lookat(Vecteur eye, Vecteur center, Vecteur up) {
-
-    Vecteur z = eye - center;
-    float znorm = z.norm();
-    z = z/znorm;
-
-    Vecteur x = up | z;
-    float xnorm = x.norm();
-    x = x/xnorm;
-
-    Vecteur y = z | x;
-    float ynorm = y.norm();
-    y = y/ynorm;
-
-    Matrix Minv = Matrix::identite(4);
-    Matrix Tr = Matrix::identite(4);
-
-    for (int i = 0; i < 3; i++) {
-
-        Minv(0, i) = x.vec[i];
-        Minv(1, i) = y.vec[i];
-        Minv(2, i) = z.vec[i];
-
-        Tr(i, 3) = -center.vec[i];
-
-    }
-
-    return Minv * Tr;
-
-}
-
-
-
 
 
 
@@ -116,9 +69,9 @@ int main(int argc, char** argv) {
     };
 
     
-    Matrix modelview = lookat(eye, center, up);
+    Matrix modelview = draw.lookat(eye, center, up);
     Matrix projection = Matrix::identite(4);
-    Matrix perspects = perspect(width/8, height/8, width*3/4, height*3/4);
+    Matrix perspects = draw.perspect(width/8, height/8, width*3/4, height*3/4);
     projection(3, 2) = -1.f/ (eye-center).norm() ;
 
     
