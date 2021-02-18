@@ -21,6 +21,7 @@ public:
    Matrix perspect(int x, int y, int w, int h);
    Matrix lookat(Vecteur eye, Vecteur center, Vecteur up);
    Matrix projection(Vecteur eye, Vecteur center);
+   void resetZbuffer();
     
 };
 

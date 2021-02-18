@@ -115,13 +115,55 @@ int main(int argc, char** argv) {
 
     render(draw, model, texture, image);
     render(draw, oeilI, textureOeilInner, image);
-    //render(draw, oeil, textureOeil, image);                               problème 
+    //render(draw, oeil, textureOeil, image);                       problème 
    
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("output.tga");
+	image.write_tga_file("output_african_head.tga");
+    draw.resetZbuffer();
 
+    TGAImage image2(width, height, TGAImage::RGB);
+    file = "obj/diablo3_pose/diablo3_pose.obj";
+
+
+    texture.read_tga_file("obj/diablo3_pose/diablo3_pose_diffuse.tga");
+    texture.flip_vertically();
+
+    model = Model(file);
+
+    render(draw, model, texture, image2);
+
+    image2.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+	image2.write_tga_file("output_diablo3_pose.tga");
+    draw.resetZbuffer();
     
-    
+
+    TGAImage image3(width, height, TGAImage::RGB);
+    file = "obj/boggie/body.obj";
+    file2 = "obj/boggie/eyes.obj";
+    file3 = "obj/boggie/head.obj";
+
+    texture.read_tga_file("obj/boggie/body_diffuse.tga");
+    texture.flip_vertically();
+
+    TGAImage texture2;
+    texture2.read_tga_file("obj/boggie/eyes_diffuse.tga");
+    texture2.flip_vertically();
+
+    TGAImage texture3;
+    texture3.read_tga_file("obj/boggie/head_diffuse.tga");
+    texture3.flip_vertically();
+
+    model = Model(file);
+    Model eye(file2);
+    Model head(file3);
+
+    render(draw, model, texture, image3);
+    render(draw, eye, texture2, image3);
+    render(draw, head, texture3, image3);
+
+    image3.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+	image3.write_tga_file("output_boggie.tga");
+
 
 	return 0;
 }

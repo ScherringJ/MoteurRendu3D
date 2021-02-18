@@ -139,3 +139,10 @@ Matrix Draw::projection(Vecteur eye, Vecteur center) {
 
     return projection;
 }
+
+void Draw::resetZbuffer() {
+    
+    for (int i = 0; i < width*height; i++) {
+        zbuffer[i] = -std::numeric_limits<float>::max();
+    };
+}
