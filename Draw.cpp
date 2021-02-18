@@ -29,7 +29,14 @@ Vecteur Draw::barycentric(Vecteur *pts,  Pointi P)
 
 }
 
-void Draw::triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &image, TGAImage &texture, float intensity) {
+bool Draw::fragment(Vecteur bary, TGAColor &color, Vecteur varying_intensity) {
+
+        float intensity = varying_intensity^bary;  
+        color = TGAColor(255, 255, 255, 255)*intensity; 
+        return false;  
+}
+
+void Draw::triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &image, TGAImage &texture, Vecteur varying_intensity) {
 
     Pointf boxmin((float)(image.get_width() - 1), (float)(image.get_height() -1));
     Pointf boxmax;
@@ -61,14 +68,17 @@ void Draw::triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage
             uv.x = pts_texture[0].x * bary.x + pts_texture[1].x * bary.y + pts_texture[2].x * bary.z;
             uv.y = pts_texture[0].y * bary.x + pts_texture[1].y * bary.y + pts_texture[2].y * bary.z;
 
-            if (zbuffer[int(P.x + P.y*width)] < Pz) {
-                zbuffer[int(P.x + P.y*width)] = Pz;
 
-                TGAColor color = texture.get(uv.x, uv.y);                
-                image.set(P.x, P.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity, 255));
+            TGAColor color;
+            bool discard = fragment(bary, color, varying_intensity);
+
+            if (!discard) {
+
+                if (zbuffer[int(P.x + P.y*width)] < Pz) {
+                    zbuffer[int(P.x + P.y*width)] = Pz;
+                    image.set(P.x, P.y, color);
+                }
             }
-
-
         }
     }
 }
@@ -117,4 +127,12 @@ Matrix Draw::lookat(Vecteur eye, Vecteur center, Vecteur up) {
 
     return Minv * Tr;
     
+}
+
+Matrix Draw::projection(Vecteur eye, Vecteur center) {
+    
+    Matrix projection = Matrix::identite(4);
+    projection(3, 2) = -1.f/ (eye-center).norm() ;
+
+    return projection;
 }

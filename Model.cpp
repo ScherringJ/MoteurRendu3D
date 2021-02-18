@@ -29,15 +29,17 @@ Model::Model(std::string name_file) : vecteurs(), faces(), coord_textures(), coo
 
         } else if (!line.compare(0, 2, "f ")) {
             Face f;
-            float idx, idx2;
+            float idx, idx2, idx3;
             char trash;
             iss >> temp;
             for ( int i = 0; i < 3; i++) {
-                iss >> idx >> trash >> idx2 >> temp;
+                iss >> idx >> trash >> idx2 >> trash >> idx3;
                 idx--;
                 idx2--;
+                idx3--;
                 f.coord[i] = idx;
                 f.text_coord[i] = idx2;
+                f.text_coord_norm[i] = idx3;
             }
             
             faces.push_back(f);
