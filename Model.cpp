@@ -11,8 +11,9 @@
 
 Model::Model(std::string name_file) : vecteurs(), faces(), coord_textures(), coord_textures_normal() {
 
-    std::ifstream fichier("obj/" + name_file + "/" + name_file + ".obj", std::ios::in);
+    std::ifstream fichier(name_file, std::ios::in);
     std::string line;
+    
     while (!fichier.eof()){
         getline(fichier,line);
         std::istringstream iss(line);
@@ -58,7 +59,6 @@ Model::Model(std::string name_file) : vecteurs(), faces(), coord_textures(), coo
                 iss >> normal.vec[i];
             }
             coord_textures_normal.push_back(normal);
-
         }
     }
 }

@@ -12,7 +12,10 @@
 
 Draw::Draw( int w,  int h,  int d) : width(w), height(h), depth(d) 
 {
-    
+    zbuffer = new float[width*height];
+    for (int i = 0; i < width*height; i++) {
+        zbuffer[i] = -std::numeric_limits<float>::max();
+    };
 }
 
 
@@ -36,7 +39,7 @@ bool Draw::fragment(Vecteur bary, TGAColor &color, Vecteur varying_intensity, TG
         return false;  
 }
 
-void Draw::triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage &image, TGAImage &texture, Vecteur varying_intensity) {
+void Draw::triangle(Vecteur *pts, Vecteur *pts_texture, TGAImage &image, TGAImage &texture, Vecteur varying_intensity) {
 
     Pointf boxmin((float)(image.get_width() - 1), (float)(image.get_height() -1));
     Pointf boxmax;
