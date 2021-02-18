@@ -9,9 +9,9 @@
 #include "struct.h"
 
 
-Model::Model(std::string name_file) : vecteurs(), faces(), coord_textures(), coord_textures_normal() {
+Model::Model(std::string file_path) : vecteurs(), faces(), coord_textures(), coord_textures_normal() {
 
-    std::ifstream fichier(name_file, std::ios::in);
+    std::ifstream fichier(file_path, std::ios::in);
     std::string line;
     
     while (!fichier.eof()){

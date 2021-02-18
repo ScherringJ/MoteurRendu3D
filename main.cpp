@@ -15,7 +15,7 @@ const int depth = 255;
 
 Vecteur camera(0, 0, 3);
 Vecteur light(0, 0, 1);
-Vecteur eye(-1, 1, 3);
+Vecteur eye(1, 1, 3);
 Vecteur center(0, 0, 0);
 Vecteur up(0, 1, 0);
 
@@ -24,8 +24,9 @@ Matrix projection(4,4);
 Matrix perspects(4,4);
 
 
-
-
+/**
+* Methode pour passer un vecteur sous forme de matrice
+**/
 Matrix vecteurToMatrix(Vecteur v) {
     Matrix m(4,1);
     m(0,0) = v.x;
@@ -36,11 +37,17 @@ Matrix vecteurToMatrix(Vecteur v) {
     return m;
 }
 
+/**
+ * Methode pour passer une matrice sous forme de vecteur
+**/
 Vecteur matrixToVecteur(Matrix m) {
 
     return Vecteur(m(0,0)/m(3,0), m(1,0)/m(3,0), m(2,0)/m(3,0));
 }
 
+/**
+ * Méthode qui parcour les faces et les dessines
+**/
 void render(Draw draw, Model model, TGAImage texture, TGAImage &image) {
 
     float norm = light.norm();
@@ -79,9 +86,6 @@ void render(Draw draw, Model model, TGAImage texture, TGAImage &image) {
 
 
 }
-
-
-
 
 
 int main(int argc, char** argv) {
@@ -163,7 +167,6 @@ int main(int argc, char** argv) {
 
     image3.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image3.write_tga_file("output_boggie.tga");
-
 
 	return 0;
 }
