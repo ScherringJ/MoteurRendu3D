@@ -29,10 +29,10 @@ Vecteur Draw::barycentric(Vecteur *pts,  Pointi P)
 
 }
 
-bool Draw::fragment(Vecteur bary, TGAColor &color, Vecteur varying_intensity) {
+bool Draw::fragment(Vecteur bary, TGAColor &color, Vecteur varying_intensity, TGAColor colorText) {
 
         float intensity = varying_intensity^bary;  
-        color = TGAColor(255, 255, 255, 255)*intensity; 
+        color = colorText*intensity; 
         return false;  
 }
 
@@ -68,9 +68,9 @@ void Draw::triangle(Vecteur *pts, float *zbuffer, Vecteur *pts_texture, TGAImage
             uv.x = pts_texture[0].x * bary.x + pts_texture[1].x * bary.y + pts_texture[2].x * bary.z;
             uv.y = pts_texture[0].y * bary.x + pts_texture[1].y * bary.y + pts_texture[2].y * bary.z;
 
-
             TGAColor color;
-            bool discard = fragment(bary, color, varying_intensity);
+            TGAColor colorText = texture.get(uv.x, uv.y);
+            bool discard = fragment(bary, color, varying_intensity, colorText);
 
             if (!discard) {
 

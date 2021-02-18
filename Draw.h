@@ -10,7 +10,7 @@ private:
    
    const int width, height, depth;
    Vecteur barycentric(Vecteur *pts,  Pointi P);
-   bool fragment(Vecteur bary, TGAColor &color, Vecteur varying_intensity);
+   bool fragment(Vecteur bary, TGAColor &color, Vecteur varying_intensity, TGAColor colorText);
 
 
 public:
